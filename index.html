@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Attendance Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    select, input[type="text"], button {
+      padding: 8px 12px;
+      margin: 10px 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .present {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .absent {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .late {
+      background-color: #f1c40f;
+      color: black;
+    }
+
+    .cell {
+      padding: 6px;
+      border-radius: 4px;
+      text-align: center;
+      width: 40px;
+      margin: 2px;
+    }
+
+    .student-row, .summary-row {
+      display: grid;
+      grid-template-columns: 100px repeat(auto-fit, minmax(40px, 1fr));
+      align-items: center;
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 4px;
+    }
+
+    .summary-row {
+      background-color: #ecf0f1;
+      font-weight: bold;
+    }
+
+    .analysis {
+      margin-top: 30px;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>Student Attendance Tracker</h2>
+
+  <label for="monthSelector">Select Month: </label>
+  <select id="monthSelector"></select>
+
+  <input type="text" id="newStudentName" placeholder="Enter student name">
+  <button onclick="addStudent()">Add Student</button>
+
+  <div id="studentsList"></div>
+
+  <div class="analysis">
+    <button onclick="generateMonthlyAnalysis()">Download Monthly Analysis</button>
+    <div id="monthlyStudentSummary"></div>
+  </div>
+
+  <script>
+    const students = ['Alice', 'Bob', 'Charlie'];
+    const attendance = {};
+    const currentDate = new Date();
+    const monthSelector = document.getElementById('monthSelector');
+    const studentsList = document.getElementById('studentsList');
+    const monthlyStudentSummary = document.getElementById('monthlyStudentSummary');
+
+    function initMonths() {
+      for (let m = 0; m < 12; m++) {
+        const option = document.createElement('option');
+        option.value = m;
+        option.textContent = new Date(2024, m, 1).toLocaleString('default', { month: 'long' });
+        monthSelector.appendChild(option);
+      }
+      monthSelector.value = currentDate.getMonth();
+      monthSelector.addEventListener('change', renderAttendance);
+    }
+
+    function getDaysInMonth(month) {
+      return new Date(2024, parseInt(month) + 1, 0).getDate();
+    }
+
+    function addStudent() {
+      const name = document.getElementById('newStudentName').value.trim();
+      if (!name || students.includes(name)) return;
+      students.push(name);
+      const month = monthSelector.value;
+      if (!attendance[month]) attendance[month] = {};
+      attendance[month][name] = Array(getDaysInMonth(month)).fill('A');
+      renderAttendance();
+    }
+
+    function updateAttendance(student, day, status) {
+      const month = monthSelector.value;
+      attendance[month][student][day] = status;
+      renderAttendance();
+    }
+
+    function renderAttendance() {
+      const month = monthSelector.value;
+      const days = getDaysInMonth(month);
+      if (!attendance[month]) attendance[month] = {};
+      students.forEach(name => {
+        if (!attendance[month][name]) attendance[month][name] = Array(days).fill('A');
+      });
+
+      studentsList.innerHTML = '';
+
+      // Day headers
+      const headerRow = document.createElement('div');
+      headerRow.className = 'summary-row';
+      headerRow.innerHTML = `<div>Day:</div>`;
+      for (let i = 1; i <= days; i++) {
+        const span = document.createElement('div');
+        span.textContent = i;
+        headerRow.appendChild(span);
+      }
+      studentsList.appendChild(headerRow);
+
+      const daySummary = Array(days).fill(0);
+
+      students.forEach(name => {
+        const row = document.createElement('div');
+        row.className = 'student-row';
+
+        const label = document.createElement('div');
+        label.textContent = name;
+        row.appendChild(label);
+
+        attendance[month][name].forEach((status, day) => {
+          const cell = document.createElement('div');
+          cell.className = `cell ${status === 'P' ? 'present' : status === 'Y' ? 'late' : 'absent'}`;
+          cell.textContent = status;
+          cell.onclick = () => {
+            const nextStatus = status === 'A' ? 'P' : status === 'P' ? 'Y' : status === 'Y' ? 'A' : 'A';
+            updateAttendance(name, day, nextStatus);
+          };
+          row.appendChild(cell);
+
+          if (status === 'P') daySummary[day]++;
+        });
+
+        studentsList.appendChild(row);
+      });
+
+      const countRow = document.createElement('div');
+      countRow.className = 'summary-row';
+      countRow.innerHTML = `<div>Present:</div>`;
+      daySummary.forEach(count => {
+        const span = document.createElement('div');
+        span.textContent = count;
+        countRow.appendChild(span);
+      });
+      studentsList.appendChild(countRow);
+
+      monthlyStudentSummary.innerHTML = '<h4>Monthly Summary</h4>' + students.map(name => {
+        const data = attendance[month][name];
+        const pCount = data.filter(x => x === 'P').length;
+        const percent = ((pCount / days) * 100).toFixed(1);
+        return `${name}: ${pCount} Days Present (${percent}%)`;
+      }).join('<br>');
+    }
+
+    function generateMonthlyAnalysis() {
+      const month = monthSelector.value;
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      csvContent += 'Student,' + Array.from({ length: getDaysInMonth(month) }, (_, i) => `Day ${i + 1}`).join(',') + ',Total Present\n';
+      students.forEach(name => {
+        const data = attendance[month][name];
+        const presentCount = data.filter(x => x === 'P').length;
+        csvContent += name + ',' + data.join(',') + ',' + presentCount + '\n';
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'monthly_attendance.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    initMonths();
+    renderAttendance();
+  </script>
+</body>
+</html>    
