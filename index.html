@@ -100,16 +100,16 @@
   </div>
 
   <script>
-    const students = ['Kavya', 'Keerthana', 'Chethana','Jaya','Nikitha'];
-    const attendance = {};
-    const currentDate = new Date();
-    const monthSelector = document.getElementById('monthSelector');
-    const studentsList = document.getElementById('studentsList');
-    const monthlyStudentSummary = document.getElementById('monthlyStudentSummary');
+    let students = ['Kavya', 'Keerthana', 'Chethana','Jaya','Nikitha'];
+    let attendance = {};
+    let currentDate = new Date();
+    let monthSelector = document.getElementById('monthSelector');
+    let studentsList = document.getElementById('studentsList');
+    let monthlyStudentSummary = document.getElementById('monthlyStudentSummary');
 
     function initMonths() {
       for (let m = 0; m < 12; m++) {
-        const option = document.createElement('option');
+        let option = document.createElement('option');
         option.value = m;
         option.textContent = new Date(2024, m, 1).toLocaleString('default', { month: 'long' });
         monthSelector.appendChild(option);
@@ -123,24 +123,24 @@
     }
 
     function addStudent() {
-      const name = document.getElementById('newStudentName').value.trim();
+      let name = document.getElementById('newStudentName').value.trim();
       if (!name || students.includes(name)) return;
       students.push(name);
-      const month = monthSelector.value;
+      let month = monthSelector.value;
       if (!attendance[month]) attendance[month] = {};
       attendance[month][name] = Array(getDaysInMonth(month)).fill('A');
       renderAttendance();
     }
 
     function updateAttendance(student, day, status) {
-      const month = monthSelector.value;
+      let month = monthSelector.value;
       attendance[month][student][day] = status;
       renderAttendance();
     }
 
     function renderAttendance() {
-      const month = monthSelector.value;
-      const days = getDaysInMonth(month);
+      let month = monthSelector.value;
+      let days = getDaysInMonth(month);
       if (!attendance[month]) attendance[month] = {};
       students.forEach(name => {
         if (!attendance[month][name]) attendance[month][name] = Array(days).fill('A');
@@ -149,32 +149,32 @@
       studentsList.innerHTML = '';
 
       // Day headers
-      const headerRow = document.createElement('div');
+      let headerRow = document.createElement('div');
       headerRow.className = 'summary-row';
       headerRow.innerHTML = `<div>Day:</div>`;
       for (let i = 1; i <= days; i++) {
-        const span = document.createElement('div');
+        let span = document.createElement('div');
         span.textContent = i;
         headerRow.appendChild(span);
       }
       studentsList.appendChild(headerRow);
 
-      const daySummary = Array(days).fill(0);
+      let daySummary = Array(days).fill(0);
 
       students.forEach(name => {
-        const row = document.createElement('div');
+        let row = document.createElement('div');
         row.className = 'student-row';
 
-        const label = document.createElement('div');
+        let label = document.createElement('div');
         label.textContent = name;
         row.appendChild(label);
 
         attendance[month][name].forEach((status, day) => {
-          const cell = document.createElement('div');
+          let cell = document.createElement('div');
           cell.className = `cell ${status === 'P' ? 'present' : status === 'Y' ? 'late' : 'absent'}`;
           cell.textContent = status;
           cell.onclick = () => {
-            const nextStatus = status === 'A' ? 'P' : status === 'P' ? 'Y' : status === 'Y' ? 'A' : 'A';
+            let nextStatus = status === 'A' ? 'P' : status === 'P' ? 'Y' : status === 'Y' ? 'A' : 'A';
             updateAttendance(name, day, nextStatus);
           };
           row.appendChild(cell);
@@ -185,35 +185,35 @@
         studentsList.appendChild(row);
       });
 
-      const countRow = document.createElement('div');
+      let countRow = document.createElement('div');
       countRow.className = 'summary-row';
       countRow.innerHTML = `<div>Present:</div>`;
       daySummary.forEach(count => {
-        const span = document.createElement('div');
+        let span = document.createElement('div');
         span.textContent = count;
         countRow.appendChild(span);
       });
       studentsList.appendChild(countRow);
 
       monthlyStudentSummary.innerHTML = '<h4>Monthly Summary</h4>' + students.map(name => {
-        const data = attendance[month][name];
-        const pCount = data.filter(x => x === 'P').length;
-        const percent = ((pCount / days) * 100).toFixed(1);
+        let data = attendance[month][name];
+        let pCount = data.filter(x => x === 'P').length;
+        let percent = ((pCount / days) * 100).toFixed(1);
         return `${name}: ${pCount} Days Present (${percent}%)`;
       }).join('<br>');
     }
 
     function generateMonthlyAnalysis() {
-      const month = monthSelector.value;
+      let month = monthSelector.value;
       let csvContent = 'data:text/csv;charset=utf-8,';
       csvContent += 'Student,' + Array.from({ length: getDaysInMonth(month) }, (_, i) => `Day ${i + 1}`).join(',') + ',Total Present\n';
       students.forEach(name => {
-        const data = attendance[month][name];
-        const presentCount = data.filter(x => x === 'P').length;
+        let data = attendance[month][name];
+        let presentCount = data.filter(x => x === 'P').length;
         csvContent += name + ',' + data.join(',') + ',' + presentCount + '\n';
       });
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
+      let encodedUri = encodeURI(csvContent);
+      let link = document.createElement('a');
       link.setAttribute('href', encodedUri);
       link.setAttribute('download', 'monthly_attendance.csv');
       document.body.appendChild(link);
@@ -225,4 +225,4 @@
     renderAttendance();
   </script>
 </body>
-</html>    
+</html>
