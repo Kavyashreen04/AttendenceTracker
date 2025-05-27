@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,37 +11,48 @@
       padding: 20px;
       background-color: #f4f4f4;
     }
-    input, button, select {
+
+    input,
+    button,
+    select {
       margin: 5px;
       padding: 6px;
       font-size: 1em;
     }
+
     table {
       width: 100%;
       margin-top: 20px;
       border-collapse: collapse;
       background-color: white;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #ddd;
       padding: 10px;
       text-align: center;
     }
+
     th {
       background-color: #007BFF;
       color: white;
     }
+
     tr:nth-child(even) {
       background-color: #f9f9f9;
     }
+
     .present {
       color: green;
       font-weight: bold;
     }
+
     .absent {
       color: red;
       font-weight: bold;
     }
+
     .form-section {
       background-color: #fff;
       padding: 15px;
@@ -48,31 +60,35 @@
       border-radius: 5px;
       margin-bottom: 20px;
     }
+
     .day-detail span {
       display: inline-block;
       margin: 2px 4px;
       padding: 3px 6px;
       border-radius: 3px;
     }
+
     .day-detail .present-day {
       background-color: #d4edda;
       border: 1px solid #c3e6cb;
       color: #155724;
     }
+
     .day-detail .absent-day {
       background-color: #f8d7da;
       border: 1px solid #f5c6cb;
       color: #721c24;
-      
-    }
-    .day-detail .late-day {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
-  color: #856404;
-}
 
+    }
+
+    .day-detail .late-day {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
   </style>
 </head>
+
 <body>
   <h2>Student Attendance Tracker</h2>
 
@@ -93,13 +109,23 @@
     <label>Month: <input type="month" id="reportMonth" onchange="updateReport()" /></label>
     <table id="reportTable">
       <thead>
-        <tr><th>Name</th><th>Join Date</th><th>Present</th><th>Absent</th><th>Percentage</th><th>Days Detail</th></tr>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Join Date</th>
+          <th>Present</th>
+          <th>Absent</th>
+          <th>Percentage</th>
+          <th>Days Detail</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 
   <script>
+    let nextStudentId = 1; // Start from 1
+
     const students = [];
     const allDates = new Set();
 
@@ -113,6 +139,7 @@
       if (!name || !joinDate) return alert("Please enter name and join date.");
 
       const student = {
+         id: nextStudentId++,
         name,
         joinDate,
         attendance: {}
@@ -139,7 +166,7 @@
         if (date >= s.joinDate) {
           const checked = s.attendance[date] === "Present" ? 'checked' : '';
           html += `<label><label>${s.name}
-  <select data-id='${i}'>
+  <select data-id='${s.id}'>
     <option value="Present" ${s.attendance[date] === "Present" ? 'selected' : ''}>Present</option>
     <option value="Absent" ${s.attendance[date] === "Absent" ? 'selected' : ''}>Absent</option>
     <option value="Late" ${s.attendance[date] === "Late" ? 'selected' : ''}>Late</option>
@@ -152,15 +179,19 @@
       document.getElementById('attendanceForm').innerHTML = html;
     }
 
-    function saveAttendance(date) {
-      document.querySelectorAll('#attendanceForm select').forEach(sel => {
-  const id = sel.getAttribute('data-id');
-  students[id].attendance[date] = sel.value;
-});
-
-      updateReport();
-      alert("Attendance saved.");
+   function saveAttendance(date) {
+  document.querySelectorAll('#attendanceForm select').forEach(sel => {
+    const id = sel.getAttribute('data-id');
+    const student = students.find(s => s.id == id); // find by ID
+    if (student) {
+      student.attendance[date] = sel.value;
     }
+  });
+
+  updateReport();
+  alert("Attendance saved.");
+}
+
 
     function updateReport() {
       const tbody = document.getElementById('reportTable').querySelector('tbody');
@@ -174,19 +205,20 @@
           if (d >= s.joinDate && (!monthInput || d.startsWith(monthInput))) {
             total++;
             if (status === "Present") {
-  present++;
-  dayDetails.push(`<span class='present-day'>${d} (P)</span>`);
-} else if (status === "Late") {
-  dayDetails.push(`<span class='late-day'>${d} (L)</span>`);
-} else {
-  dayDetails.push(`<span class='absent-day'>${d} (A)</span>`);
-}
+              present++;
+              dayDetails.push(`<span class='present-day'>${d} (P)</span>`);
+            } else if (status === "Late") {
+              dayDetails.push(`<span class='late-day'>${d} (L)</span>`);
+            } else {
+              dayDetails.push(`<span class='absent-day'>${d} (A)</span>`);
+            }
 
           }
         }
         const absent = total - present;
         const percentage = total ? ((present / total) * 100).toFixed(2) : "0.00";
         tbody.innerHTML += `<tr>
+          <td>${s.id}</td>
           <td>${s.name}</td>
           <td>${s.joinDate}</td>
           <td>${present}</td>
@@ -198,4 +230,5 @@
     }
   </script>
 </body>
+
 </html>
